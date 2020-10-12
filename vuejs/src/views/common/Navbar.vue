@@ -1,9 +1,6 @@
 <template>
   <nav class="navbar" role="navigation" aria-label="main navigation">
     <div class="container">
-      <div class="loading">
-        <loading :active.sync="loading" :can-cancel="false" :is-full-page="fullpage"></loading>
-      </div>
       <div class="navbar-brand">
         <div class="navbar-item nav-link">
           <h3 class="title has-text-netflix is-3" v-tooltip.bottom-start="'Home'" @click="homeroute">
@@ -135,7 +132,7 @@
           </div>
           <a
             class="navbar-item"
-            title="Logout"
+            title="Stop Music Player"
             v-tooltip.bottom-start="'Stop Music Player'"
             @click="closeMusicPlayer()"
             v-if="logged && miniplayer"
@@ -198,11 +195,9 @@ import { apiRoutes, backendHeaders } from "@/utils/backendUtils";
 import { getItem, removeItem } from '@utils/encryptUtils';
 import { initializeUser } from "@utils/localUtils";
 import ViewMode from "@/layout/viewmode";
-import Loading from 'vue-loading-overlay';
 export default {
   components: {
     ViewMode,
-    Loading,
   },
   created() {
     this.$bus.$on('logged', () => {
@@ -297,7 +292,6 @@ export default {
       this.active = !this.active
     },
     getallPosts(id){
-      this.loading = true;
       this.$backend.post(apiRoutes.getallPosters, {
         email: this.user.email,
         root: id
@@ -305,32 +299,26 @@ export default {
         if(response.data.auth && response.data.registered){
           let resp = response.data;
           this.quicklinks = resp.quicklink;
-          this.loading = false;
         } else {
           this.quicklinks = [];
-          this.loading = false;
         }
       })
     },
     loginorout() {
-      this.loading = true;
       var userData = initializeUser();
       if(userData.isThere){
         if(userData.type == "hybrid"){
           this.user = userData.data.user;
           this.logged = userData.data.logged;
-          this.loading = userData.data.loading;
         } else if(userData.type == "normal"){
           this.user = userData.data.user;
           this.token = userData.data.token;
           this.logged = userData.data.logged;
-          this.loading = userData.data.loading;
           this.admin = userData.data.admin;
           this.superadmin = userData.data.superadmin;
         }
       } else {
         this.logged = userData.data.logged;
-        this.loading = userData.data.loading;
       }
       this.getallPosts(this.$route.params.id);
     },
@@ -339,32 +327,27 @@ export default {
     },
     gotoPage(url, cmd) {
       this.isActive = !this.isActive;
-      this.loading = true;
       if(cmd){
         this.$router.push({ path: '/'+ this.gdindex + ':' + cmd + url })
       } else {
         this.$router.push({ path: '/'+ this.gdindex + ':' + url })
       }
-      setTimeout(() => {
-        this.loading = false;
-      }, 500)
     },
     logout() {
-      this.loading = true;
       this.isActive = !this.isActive;
       var token = getItem("tokendata")
       var user = getItem("userdata");
+      var session = getItem("sessiondata");
       var hyBridToken = getItem("hybridToken");
       if(hyBridToken && hyBridToken != null || hyBridToken != undefined){
         removeItem("hybridToken");
         this.$bus.$emit("logout", "User Logged Out");
-        this.loading = false;
         this.$router.push({ name: 'results' , params: { id: this.gdindex, cmd: "result", success:true, data: "You are Being Logged Out. Please Wait", redirectUrl: '/', tocmd:'home' } })
-      } else if (user != null && token != null){
+      } else if (user != null && token != null && session != null){
         removeItem("tokendata");
         removeItem("userdata");
+        removeItem("sessiondata");
         this.$bus.$emit("logout", "User Logged Out");
-        this.loading = false;
         this.$router.push({ name: 'results' , params: { id: this.gdindex, cmd: "result", success:true, data: "You are Being Logged Out. Please Wait", redirectUrl: '/', tocmd:'home' } })
       } else {
         this.loading = false;

@@ -1,5 +1,5 @@
 <template>
-  <div id="app" class="mx-0 my-0 px-0 py-0">
+  <div id="app" class="mx-0 blur-part my-0 px-0 py-0">
     <Layout ref="layout" />
   </div>
 </template>
@@ -27,7 +27,7 @@ export default {
     this.delTemps();
   },
   mounted() {
-    this.checkVersion();
+    // this.checkVersion();
     this.netflix_black = window.themeOptions.prefer_netflix_black
   },
   methods: {
